@@ -49,6 +49,26 @@
 - **ComfyUI** が別途どこかで起動していること(下記の手順1)
   - 画像生成にはGPU(NVIDIA製)がほぼ必須です。GPU搭載PC、またはGPU付きのクラウド環境が必要になります
 
+## GPU搭載PCが無い場合: Google Colabで動かす
+
+GPU搭載PCをお持ちでない場合は、`colab/ImageStudio_Colab.ipynb` を使うと、
+Google ColabのGPUを借りてComfyUIとImage Studioの両方を起動できます。
+
+1. https://colab.research.google.com を開き、「アップロード」タブからこのリポジトリの
+   `colab/ImageStudio_Colab.ipynb` を開く(またはGitHubタブで
+   `jinziruixi07-design/image-studio` を検索して開く)
+2. 「ランタイム」→「ランタイムのタイプを変更」で **GPU** を選ぶ
+3. ノートブックに書かれた説明に従って、上から順にセルを実行する
+4. 最後のセルで表示される `https://xxxxx.trycloudflare.com` のようなURLをブラウザで開く
+
+これだけで、下記の手順1・2で説明しているセットアップがすべて自動で行われます。
+Colab無料版には利用時間の制限があるため、長時間の作業には向きませんが、
+まず試してみるには十分です。
+
+### 直接手元のPC/サーバーでComfyUIを動かす場合
+
+Colabを使わず、ご自身のGPU環境で動かす場合は、以下の手順1・2を参照してください。
+
 ## 手順1: ComfyUIを起動する
 
 このリポジトリの `comfyui-runtime/` フォルダに、ComfyUIをDockerで起動するための設定を入れてあります。

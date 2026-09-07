@@ -255,4 +255,11 @@ def api_image(prompt_id, idx):
 
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    # HOST=0.0.0.0 is used when running behind a tunnel (e.g. the Colab
+    # notebook in colab/) so the process accepts connections from outside
+    # the machine it runs on. Debug/reloader is off by default in that case
+    # since the reloader's subprocess forking doesn't play well with being
+    # launched as a background job.
+    host = os.environ.get("HOST", "127.0.0.1")
+    debug = os.environ.get("FLASK_DEBUG", "0" if host != "127.0.0.1" else "1") == "1"
+    app.run(host=host, port=5000, debug=debug)
