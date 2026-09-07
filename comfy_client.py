@@ -84,12 +84,25 @@ def get_history(base_url, prompt_id):
     return history.get(prompt_id)
 
 
+def get_execution_error(history_entry):
+    """Return {node_type, exception_message} if ComfyUI reported an execution
+    error for this prompt, otherwise None."""
+    messages = history_entry.get("status", {}).get("messages", [])
+    for kind, payload in messages:
+        if kind == "execution_error":
+            return {
+                "node_type": payload.get("node_type", "unknown"),
+                "exception_message": payload.get("exception_message", ""),
+            }
+    return None
+
+
 def find_output_images(history_entry, save_node):
     """Return the list of every image produced by save_node (one per batch item)."""
     outputs = history_entry.get("outputs", {})
     node_output = outputs.get(save_node)
     if not node_output or "images" not in node_output:
-        raise RuntimeError(f"no image found in output of node {save_node}")
+        raise RuntimeError(f"画像が生成されませんでした(ノード {save_node} に出力がありません)")
     return node_output["images"]
 
 

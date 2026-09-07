@@ -47,8 +47,20 @@ def handle_any_error(exc):
     from werkzeug.exceptions import HTTPException
 
     if isinstance(exc, HTTPException):
-        return jsonify({"error": exc.description or str(exc)}), exc.code
-    return jsonify({"error": f"サーバー内部でエラーが発生しました: {exc}"}), 500
+        message = HTTP_ERROR_MESSAGES_JA.get(exc.code, f"エラーが発生しました (HTTP {exc.code})。")
+        return jsonify({"error": message}), exc.code
+    return jsonify({"error": f"サーバー内部で予期しないエラーが発生しました: {exc}"}), 500
+
+
+HTTP_ERROR_MESSAGES_JA = {
+    400: "リクエストの内容に誤りがあります。",
+    404: "指定されたページ・データが見つかりませんでした。",
+    405: "その操作はこのURLでは許可されていません。",
+    413: "アップロードしたファイルが大きすぎます。",
+    502: "ComfyUIサーバーからの応答が正常ではありませんでした。",
+    503: "サーバーが一時的に利用できません。少し待って再度お試しください。",
+    504: "ComfyUIサーバーからの応答がタイムアウトしました。",
+}
 
 
 def load_characters():
@@ -225,7 +237,7 @@ def api_generate():
 def api_status(prompt_id):
     job = JOBS.get(prompt_id)
     if job is None:
-        return jsonify({"error": "unknown prompt_id"}), 404
+        return jsonify({"error": "指定された生成ジョブが見つかりませんでした。"}), 404
 
     if job["status"] == "done":
         return jsonify({
@@ -237,10 +249,23 @@ def api_status(prompt_id):
     try:
         history_entry = comfy_client.get_history(COMFYUI_URL, prompt_id)
     except Exception as exc:  # noqa: BLE001
-        return jsonify({"status": "error", "error": str(exc)}), 502
+        return jsonify({"status": "error", "error": f"ComfyUIの状態確認に失敗しました: {exc}"}), 502
 
     if history_entry is None:
         return jsonify({"status": "pending"})
+
+    execution_error = comfy_client.get_execution_error(history_entry)
+    if execution_error:
+        job["status"] = "error"
+        return jsonify({
+            "status": "error",
+            "error": (
+                f"ComfyUIでの生成中にエラーが発生しました"
+                f"(ノード種別: {execution_error['node_type']})。"
+                f" モデルファイルや必要なカスタムノードが揃っているか確認してください。"
+                f" 詳細: {execution_error['exception_message']}"
+            ),
+        }), 502
 
     try:
         image_infos = comfy_client.find_output_images(history_entry, job["meta"]["save_node"])
