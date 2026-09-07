@@ -80,6 +80,11 @@ function applyCharacterSelectionVisibility() {
   firstUpload.hidden = usingCharacter;
 }
 
+// Fast (distilled) generation is the friendlier default on a free-tier
+// GPU - pick it first if it's available, otherwise fall back to whatever
+// the API listed first.
+const PREFERRED_DEFAULT_WORKFLOW = "character_portrait_flux_klein";
+
 async function loadWorkflows() {
   const res = await fetch("/api/workflows");
   workflows = await safeJson(res);
@@ -89,6 +94,9 @@ async function loadWorkflows() {
     opt.value = wf.id;
     opt.textContent = wf.label;
     workflowSelect.appendChild(opt);
+  }
+  if (workflows.some((wf) => wf.id === PREFERRED_DEFAULT_WORKFLOW)) {
+    workflowSelect.value = PREFERRED_DEFAULT_WORKFLOW;
   }
   renderWorkflowExtras();
 }

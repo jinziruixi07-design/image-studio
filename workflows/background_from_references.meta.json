@@ -1,0 +1,15 @@
+{
+  "label": "新規背景 (最大4枚の参照画像からブレンド)",
+  "description": "1〜4枚の参照画像(構図・色合い・雰囲気など)をIPAdapterで混ぜ合わせ、新しい背景を描き起こします。1枚目以外は省略可です。ComfyUI_IPAdapter_plusカスタムノードのインストールが必要です。",
+  "positive_node": "11",
+  "positive_input": "text",
+  "negative_node": "12",
+  "negative_input": "text",
+  "seed_node": "14",
+  "seed_input": "seed",
+  "save_node": "16",
+  "reference_nodes": ["2", "3", "4", "5"],
+  "reference_labels": ["参照画像1 (必須)", "参照画像2 (任意)", "参照画像3 (任意)", "参照画像4 (任意)"],
+  "min_references": 1,
+  "requires_custom_nodes": ["ComfyUI_IPAdapter_plus"]
+}
