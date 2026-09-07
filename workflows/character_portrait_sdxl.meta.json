@@ -1,0 +1,10 @@
+{
+  "label": "キャラクター立ち絵 (SDXL / 高品質・低速)",
+  "positive_node": "6",
+  "positive_input": "text",
+  "negative_node": "7",
+  "negative_input": "text",
+  "seed_node": "3",
+  "seed_input": "seed",
+  "save_node": "9"
+}

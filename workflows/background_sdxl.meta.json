@@ -1,0 +1,10 @@
+{
+  "label": "背景 (SDXL, 横長1344x768)",
+  "positive_node": "6",
+  "positive_input": "text",
+  "negative_node": "7",
+  "negative_input": "text",
+  "seed_node": "3",
+  "seed_input": "seed",
+  "save_node": "9"
+}

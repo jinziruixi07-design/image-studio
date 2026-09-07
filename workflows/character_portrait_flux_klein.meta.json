@@ -1,0 +1,9 @@
+{
+  "label": "キャラクター立ち絵 (FLUX.2 Klein / 高速ラフ確認向け)",
+  "positive_node": "4",
+  "positive_input": "text",
+  "negative_node": null,
+  "seed_node": "7",
+  "seed_input": "seed",
+  "save_node": "9"
+}

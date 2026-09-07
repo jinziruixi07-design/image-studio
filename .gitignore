@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+outputs/*.png
+!outputs/.gitkeep
+
+# ComfyUI runtime data if built locally
+comfyui-runtime/ComfyUI/
+comfyui-runtime/models/
+comfyui-runtime/output/
+comfyui-runtime/input/
+comfyui-runtime/custom_nodes/
