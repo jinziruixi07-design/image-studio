@@ -17,10 +17,25 @@
         種類
         <select id="workflow_id" required></select>
       </label>
+      <p id="workflow-description" class="hint"></p>
+
+      <div id="reference-uploads"></div>
+
+      <div id="character-picker" hidden>
+        <label>
+          保存済みキャラクターを使う(任意)
+          <select id="character_select">
+            <option value="">-- 使わない(新しい画像をアップロード) --</option>
+          </select>
+        </label>
+      </div>
 
       <label>
         欲しい画像の説明 (プロンプト)
-        <textarea id="prompt" rows="3" placeholder="例: 1girl, short brown hair, school uniform, smiling" required></textarea>
+        <div class="prompt-row">
+          <textarea id="prompt" rows="3" placeholder="例: 1girl, short brown hair, school uniform, smiling" required></textarea>
+          <button type="button" id="expand-btn" hidden>AIで英語プロンプトに変換</button>
+        </div>
       </label>
 
       <label>
@@ -33,21 +48,25 @@
         <input id="seed" type="number" placeholder="空欄でランダム" />
       </label>
 
-      <button type="submit" id="generate-btn">生成する</button>
+      <button type="submit" id="generate-btn">生成する (4枚)</button>
     </form>
 
     <div id="status"></div>
 
     <div id="result" hidden>
-      <img id="result-image" alt="生成結果" />
-      <div class="actions">
-        <a id="download-link" download="generated.png">この画像をダウンロード</a>
-      </div>
+      <div id="result-grid"></div>
       <p class="hint">
-        ダウンロードした画像を、ゲームプロジェクトの <code>novel/assets/characters/</code> または
-        <code>novel/assets/backgrounds/</code> に置くとゲームで使えます。
+        気に入った画像は「ダウンロード」で保存し、ゲームプロジェクトの
+        <code>novel/assets/characters/</code> や <code>novel/assets/backgrounds/</code> に置いてください。
+        キャラクター用の画像は「キャラクターとして保存」で、このサイトのライブラリにも登録できます
+        (表情違いなどを後で作るときの参照元になります)。
       </p>
     </div>
+
+    <section id="character-library">
+      <h2>保存したキャラクター</h2>
+      <div id="character-list"></div>
+    </section>
   </div>
 
   <script src="app.js"></script>

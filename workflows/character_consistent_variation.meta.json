@@ -1,0 +1,14 @@
+{
+  "label": "既存キャラクターの表情・ポーズ違い (1枚の参照画像から量産)",
+  "description": "保存済みキャラクター(または1枚の参照画像)を元に、同じキャラを保ったまま表情やポーズを変えたバリエーションを作ります。プロンプトには変えたい部分(例: 笑顔で手を振っている)だけを書いてください。ComfyUI_IPAdapter_plusカスタムノードのインストールが必要です。",
+  "positive_node": "5",
+  "positive_input": "text",
+  "negative_node": "6",
+  "negative_input": "text",
+  "seed_node": "8",
+  "seed_input": "seed",
+  "save_node": "10",
+  "reference_nodes": ["2"],
+  "reference_labels": ["ベースにするキャラクター画像"],
+  "requires_custom_nodes": ["ComfyUI_IPAdapter_plus"]
+}

@@ -32,7 +32,7 @@
     "inputs": {
       "width": 832,
       "height": 1216,
-      "batch_size": 1
+      "batch_size": 4
     }
   },
   "6": {

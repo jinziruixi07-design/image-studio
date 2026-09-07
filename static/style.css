@@ -10,7 +10,7 @@ body {
 }
 
 #app {
-  max-width: 640px;
+  max-width: 760px;
   margin: 0 auto;
   padding: 32px 20px 64px;
 }
@@ -89,23 +89,45 @@ button:not(:disabled):hover {
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
-#result img {
+#result-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.result-item img {
   max-width: 100%;
   border-radius: 8px;
   display: block;
 }
 
-.actions {
-  margin-top: 12px;
+.result-item .actions {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-#download-link {
+.result-item .actions a,
+.result-item .actions button {
+  font-size: 0.85em;
+  padding: 6px 14px;
+}
+
+.result-item .actions a {
   display: inline-block;
-  padding: 8px 20px;
   border-radius: 999px;
   background: #2c2c2c;
   color: #fff;
   text-decoration: none;
+}
+
+.result-item .actions button {
+  border-radius: 999px;
+  border: none;
+  background: #e08a3c;
+  color: #fff;
+  cursor: pointer;
 }
 
 .hint {
@@ -117,4 +139,69 @@ button:not(:disabled):hover {
   background: #eee;
   padding: 1px 4px;
   border-radius: 4px;
+}
+
+.prompt-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.prompt-row textarea {
+  flex: 1;
+}
+
+.prompt-row button {
+  white-space: nowrap;
+  font-size: 0.85em;
+  padding: 8px 14px;
+  background: #3c6e8a;
+}
+
+.prompt-row button:not(:disabled):hover {
+  background: #305a72;
+}
+
+#reference-uploads {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.reference-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.95em;
+}
+
+#character-library {
+  margin-top: 32px;
+}
+
+#character-library h2 {
+  font-size: 1.1em;
+}
+
+#character-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 12px;
+}
+
+.character-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  font-size: 0.85em;
+}
+
+.character-card img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 6px;
 }

@@ -3,6 +3,12 @@ __pycache__/
 outputs/*.png
 !outputs/.gitkeep
 
+.env
+
+# Character library (personal data, grows over time - keep it local)
+characters/*.png
+characters/index.json
+
 # ComfyUI runtime data if built locally
 comfyui-runtime/ComfyUI/
 comfyui-runtime/models/

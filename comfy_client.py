@@ -10,12 +10,17 @@ WORKFLOWS_DIR = Path(__file__).parent / "workflows"
 
 
 def list_workflows():
-    """Return [{id, label}] for every *.json/*.meta.json pair in workflows/."""
+    """Return [{id, label, description, reference_labels}] for every workflow."""
     items = []
     for meta_path in sorted(WORKFLOWS_DIR.glob("*.meta.json")):
         workflow_id = meta_path.name[: -len(".meta.json")]
         meta = json.loads(meta_path.read_text(encoding="utf-8"))
-        items.append({"id": workflow_id, "label": meta.get("label", workflow_id)})
+        items.append({
+            "id": workflow_id,
+            "label": meta.get("label", workflow_id),
+            "description": meta.get("description", ""),
+            "reference_labels": meta.get("reference_labels", []),
+        })
     return items
 
 
@@ -29,7 +34,7 @@ def load_workflow(workflow_id):
     return workflow, meta
 
 
-def apply_overrides(workflow, meta, prompt=None, negative=None, seed=None):
+def apply_overrides(workflow, meta, prompt=None, negative=None, seed=None, reference_images=None):
     if prompt:
         node = meta["positive_node"]
         workflow[node]["inputs"][meta["positive_input"]] = prompt
@@ -42,6 +47,23 @@ def apply_overrides(workflow, meta, prompt=None, negative=None, seed=None):
     if seed is not None:
         node = meta["seed_node"]
         workflow[node]["inputs"][meta["seed_input"]] = seed
+
+    reference_nodes = meta.get("reference_nodes") or []
+    if reference_nodes and reference_images:
+        for node_id, comfy_image_name in zip(reference_nodes, reference_images):
+            workflow[node_id]["inputs"]["image"] = comfy_image_name
+
+
+def upload_image(base_url, filename, file_bytes, content_type="image/png"):
+    """Upload a reference image into ComfyUI's input/ folder; returns ComfyUI's name for it."""
+    resp = requests.post(
+        f"{base_url}/upload/image",
+        files={"image": (filename, file_bytes, content_type)},
+        data={"overwrite": "true"},
+        timeout=60,
+    )
+    resp.raise_for_status()
+    return resp.json()["name"]
 
 
 def queue_prompt(base_url, workflow, client_id):
@@ -62,12 +84,13 @@ def get_history(base_url, prompt_id):
     return history.get(prompt_id)
 
 
-def find_output_image(history_entry, save_node):
+def find_output_images(history_entry, save_node):
+    """Return the list of every image produced by save_node (one per batch item)."""
     outputs = history_entry.get("outputs", {})
     node_output = outputs.get(save_node)
     if not node_output or "images" not in node_output:
         raise RuntimeError(f"no image found in output of node {save_node}")
-    return node_output["images"][0]
+    return node_output["images"]
 
 
 def fetch_image_bytes(base_url, image_info):

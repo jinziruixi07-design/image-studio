@@ -1,0 +1,14 @@
+{
+  "label": "新規キャラクター (2枚の参照画像から要素をブレンド)",
+  "description": "2枚の参照画像(顔立ち・服装・雰囲気など)をIPAdapterで混ぜ合わせ、新しいキャラクターを描き起こします。ComfyUI_IPAdapter_plusカスタムノードのインストールが必要です。",
+  "positive_node": "7",
+  "positive_input": "text",
+  "negative_node": "8",
+  "negative_input": "text",
+  "seed_node": "10",
+  "seed_input": "seed",
+  "save_node": "12",
+  "reference_nodes": ["2", "3"],
+  "reference_labels": ["参照画像1", "参照画像2"],
+  "requires_custom_nodes": ["ComfyUI_IPAdapter_plus"]
+}
