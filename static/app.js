@@ -229,19 +229,17 @@ form.addEventListener("submit", async (e) => {
   }
 
   const fileInputs = referenceUploadsEl.querySelectorAll(".reference-upload:not([hidden]) input[type=file]");
-  let missingFile = false;
-  let idx = 0;
+  let uploadedCount = 0;
   for (const input of fileInputs) {
-    if (!input.files[0]) {
-      missingFile = true;
-      break;
+    if (input.files[0]) {
+      formData.append(`reference_${uploadedCount}`, input.files[0]);
+      uploadedCount++;
     }
-    formData.append(`reference_${idx}`, input.files[0]);
-    idx++;
   }
 
-  if (missingFile) {
-    setStatus("参照画像をすべて選択してください。", true);
+  const hasReferenceSlots = wf.reference_labels && wf.reference_labels.length > 0;
+  if (hasReferenceSlots && !usingCharacter && uploadedCount === 0) {
+    setStatus("参照画像を少なくとも1枚選択してください。", true);
     generateBtn.disabled = false;
     return;
   }

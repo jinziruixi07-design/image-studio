@@ -205,3 +205,30 @@ button:not(:disabled):hover {
   border-radius: 6px;
   margin-bottom: 6px;
 }
+
+@media (max-width: 520px) {
+  #app {
+    padding: 16px 12px 48px;
+  }
+
+  form {
+    padding: 14px;
+  }
+
+  .prompt-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .prompt-row button {
+    align-self: flex-start;
+  }
+
+  #result-grid {
+    grid-template-columns: 1fr;
+  }
+
+  button[type="submit"] {
+    width: 100%;
+  }
+}

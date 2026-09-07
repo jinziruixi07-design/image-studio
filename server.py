@@ -166,15 +166,26 @@ def api_generate():
                 return jsonify({"error": f"ComfyUIに接続できませんでした。ComfyUIが起動しているか確認してください ({COMFYUI_URL})。"}), 502
             reference_image_names.append(comfy_name)
 
-        for i in range(len(reference_nodes) - len(reference_image_names)):
+        i = 0
+        while True:
             file = request.files.get(f"reference_{i}")
             if file is None:
-                return jsonify({"error": "参照画像が足りません。すべての参照画像を指定してください。"}), 400
+                break
             try:
                 comfy_name = comfy_client.upload_image(COMFYUI_URL, file.filename, file.read(), file.mimetype)
             except requests.exceptions.ConnectionError:
                 return jsonify({"error": f"ComfyUIに接続できませんでした。ComfyUIが起動しているか確認してください ({COMFYUI_URL})。"}), 502
             reference_image_names.append(comfy_name)
+            i += 1
+
+        min_references = meta.get("min_references", len(reference_nodes))
+        if len(reference_image_names) < min_references:
+            return jsonify({"error": "参照画像を少なくとも1枚指定してください。"}), 400
+
+        # Fewer images than reference slots is fine - repeat the last one to
+        # fill the remaining slots in the (fixed-shape) ComfyUI graph.
+        while len(reference_image_names) < len(reference_nodes):
+            reference_image_names.append(reference_image_names[-1])
 
     comfy_client.apply_overrides(
         workflow, meta, prompt=prompt, negative=negative, seed=seed, reference_images=reference_image_names
