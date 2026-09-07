@@ -66,12 +66,39 @@ def upload_image(base_url, filename, file_bytes, content_type="image/png"):
     return resp.json()["name"]
 
 
+class ComfyUIRejectedPrompt(RuntimeError):
+    """ComfyUI refused to even queue the workflow (e.g. a missing custom
+    node or a bad model filename) - as opposed to a network-level failure."""
+
+
+def _describe_prompt_rejection(resp):
+    try:
+        body = resp.json()
+    except ValueError:
+        return f"ComfyUIがリクエストを拒否しました (HTTP {resp.status_code})。"
+
+    messages = []
+    for node_id, info in (body.get("node_errors") or {}).items():
+        for err in info.get("errors", []):
+            messages.append(f"ノード#{node_id} ({info.get('class_type', '?')}): {err.get('message', err)}")
+
+    if not messages and isinstance(body.get("error"), dict):
+        messages.append(body["error"].get("message", str(body["error"])))
+
+    if not messages:
+        messages.append(str(body))
+
+    return "ComfyUIがこのワークフローを実行できませんでした: " + " / ".join(messages)
+
+
 def queue_prompt(base_url, workflow, client_id):
     resp = requests.post(
         f"{base_url}/prompt",
         json={"prompt": workflow, "client_id": client_id},
         timeout=30,
     )
+    if resp.status_code == 400:
+        raise ComfyUIRejectedPrompt(_describe_prompt_rejection(resp))
     resp.raise_for_status()
     return resp.json()["prompt_id"]
 

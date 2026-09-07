@@ -226,6 +226,8 @@ def api_generate():
         return jsonify({
             "error": f"ComfyUIに接続できませんでした。ComfyUIが起動しているか確認してください ({COMFYUI_URL})。",
         }), 502
+    except comfy_client.ComfyUIRejectedPrompt as exc:
+        return jsonify({"error": str(exc)}), 400
     except Exception as exc:  # noqa: BLE001 - surface any other error to the UI
         return jsonify({"error": f"生成の開始に失敗しました: {exc}"}), 502
 
