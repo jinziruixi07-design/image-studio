@@ -15,7 +15,7 @@
     "class_type": "IPAdapterUnifiedLoader",
     "inputs": {
       "model": ["1", 0],
-      "preset": "PLUS FACE (portraits)"
+      "preset": "PLUS (high strength)"
     }
   },
   "4": {
@@ -25,11 +25,9 @@
       "ipadapter": ["3", 1],
       "image": ["2", 0],
       "weight": 0.8,
-      "weight_type": "linear",
-      "combine_embeds": "average",
+      "weight_type": "standard",
       "start_at": 0.0,
-      "end_at": 1.0,
-      "embeds_scaling": "V only"
+      "end_at": 1.0
     }
   },
   "5": {
