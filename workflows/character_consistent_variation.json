@@ -51,7 +51,7 @@
     "inputs": {
       "width": 832,
       "height": 1216,
-      "batch_size": 4
+      "batch_size": 2
     }
   },
   "8": {

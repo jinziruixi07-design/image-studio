@@ -250,6 +250,16 @@ def api_status(prompt_id):
 
     try:
         history_entry = comfy_client.get_history(COMFYUI_URL, prompt_id)
+    except requests.exceptions.ConnectionError:
+        return jsonify({
+            "status": "error",
+            "error": (
+                "ComfyUIに接続できなくなりました。GPUメモリ不足で生成中にComfyUIが"
+                "落ちた可能性があります(comfyui.logに『CUDA out of memory』のような行が"
+                "無いか確認してください)。ComfyUIを再起動して、参照画像を減らすか、"
+                "同時生成枚数を減らして再度お試しください。"
+            ),
+        }), 502
     except Exception as exc:  # noqa: BLE001
         return jsonify({"status": "error", "error": f"ComfyUIの状態確認に失敗しました: {exc}"}), 502
 
