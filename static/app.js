@@ -6,6 +6,8 @@ const characterPicker = document.getElementById("character-picker");
 const characterSelect = document.getElementById("character_select");
 const promptEl = document.getElementById("prompt");
 const expandBtn = document.getElementById("expand-btn");
+const autoExpandRow = document.getElementById("auto-expand-row");
+const autoExpandCheckbox = document.getElementById("auto_expand");
 const statusEl = document.getElementById("status");
 const generateBtn = document.getElementById("generate-btn");
 const resultEl = document.getElementById("result");
@@ -16,6 +18,22 @@ let workflows = [];
 
 function currentWorkflow() {
   return workflows.find((w) => w.id === workflowSelect.value);
+}
+
+async function safeJson(res) {
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    // The server (or, on Colab, the tunnel/Colab itself) returned an HTML
+    // error page instead of JSON - most often because the Colab session
+    // disconnected, or ComfyUI/Image Studio crashed. Surface something
+    // readable instead of the raw "Unexpected token '<'" parse error.
+    throw new Error(
+      `サーバーから予期しない応答がありました (HTTP ${res.status})。` +
+        "Colabのセッションが切れていないか、ComfyUIとImage Studioがまだ動いているか確認してください。"
+    );
+  }
 }
 
 function setStatus(text, isError = false) {
@@ -64,7 +82,7 @@ function applyCharacterSelectionVisibility() {
 
 async function loadWorkflows() {
   const res = await fetch("/api/workflows");
-  workflows = await res.json();
+  workflows = await safeJson(res);
   workflowSelect.innerHTML = "";
   for (const wf of workflows) {
     const opt = document.createElement("option");
@@ -75,15 +93,19 @@ async function loadWorkflows() {
   renderWorkflowExtras();
 }
 
+let promptExpansionAvailable = false;
+
 async function loadFeatures() {
   const res = await fetch("/api/features");
-  const data = await res.json();
-  expandBtn.hidden = !data.prompt_expansion_available;
+  const data = await safeJson(res);
+  promptExpansionAvailable = !!data.prompt_expansion_available;
+  expandBtn.hidden = !promptExpansionAvailable;
+  autoExpandRow.hidden = !promptExpansionAvailable;
 }
 
 async function loadCharacters() {
   const res = await fetch("/api/characters");
-  const characters = await res.json();
+  const characters = await safeJson(res);
 
   characterSelect.innerHTML = '<option value="">-- 使わない(新しい画像をアップロード) --</option>';
   for (const c of characters) {
@@ -152,7 +174,7 @@ async function saveAsCharacter(promptId, index) {
   fd.append("image_index", String(index));
 
   const res = await fetch("/api/characters", { method: "POST", body: fd });
-  const data = await res.json();
+  const data = await safeJson(res);
   if (!res.ok) {
     alert(data.error || "保存に失敗しました");
     return;
@@ -161,10 +183,21 @@ async function saveAsCharacter(promptId, index) {
   loadCharacters();
 }
 
+async function expandPromptText(text) {
+  const res = await fetch("/api/expand_prompt", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text }),
+  });
+  const data = await safeJson(res);
+  if (!res.ok) throw new Error(data.error || "プロンプトの変換に失敗しました");
+  return data.prompt;
+}
+
 async function pollStatus(promptId) {
   while (true) {
     const res = await fetch(`/api/status/${promptId}`);
-    const data = await res.json();
+    const data = await safeJson(res);
 
     if (data.status === "done") {
       return data.image_urls;
@@ -190,14 +223,7 @@ expandBtn.addEventListener("click", async () => {
   const originalLabel = expandBtn.textContent;
   expandBtn.textContent = "変換中...";
   try {
-    const res = await fetch("/api/expand_prompt", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "変換に失敗しました");
-    promptEl.value = data.prompt;
+    promptEl.value = await expandPromptText(text);
     setStatus("プロンプトを変換しました。");
   } catch (err) {
     setStatus(err.message, true);
@@ -216,9 +242,21 @@ form.addEventListener("submit", async (e) => {
   resultEl.hidden = true;
   setStatus("送信中...");
 
+  let promptText = promptEl.value;
+  if (promptExpansionAvailable && autoExpandCheckbox.checked && promptText.trim()) {
+    try {
+      setStatus("AIでプロンプトを英語に変換しています...");
+      promptText = await expandPromptText(promptText);
+      promptEl.value = promptText; // show the user what was actually used
+    } catch (err) {
+      // Fall back to the original text rather than blocking generation.
+      setStatus(`プロンプト変換に失敗したため、入力をそのまま使います (${err.message})`, true);
+    }
+  }
+
   const formData = new FormData();
   formData.append("workflow_id", wf.id);
-  formData.append("prompt", promptEl.value);
+  formData.append("prompt", promptText);
   formData.append("negative", document.getElementById("negative").value);
   const seedValue = document.getElementById("seed").value;
   if (seedValue !== "") formData.append("seed", seedValue);
@@ -246,7 +284,7 @@ form.addEventListener("submit", async (e) => {
 
   try {
     const res = await fetch("/api/generate", { method: "POST", body: formData });
-    const data = await res.json();
+    const data = await safeJson(res);
     if (!res.ok) {
       throw new Error(data.error || "生成の開始に失敗しました");
     }

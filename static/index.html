@@ -32,12 +32,19 @@
       </div>
 
       <label>
-        欲しい画像の説明 (プロンプト)
+        欲しい画像の説明 (プロンプト・日本語でOK)
         <div class="prompt-row">
-          <textarea id="prompt" rows="3" placeholder="例: 1girl, short brown hair, school uniform, smiling" required></textarea>
+          <textarea id="prompt" rows="3" placeholder="例: 明るい茶色のショートヘアで、制服を着て笑っている女の子" required></textarea>
           <button type="button" id="expand-btn" hidden>AIで英語プロンプトに変換</button>
         </div>
       </label>
+
+      <div id="auto-expand-row" hidden>
+        <label class="checkbox-label">
+          <input type="checkbox" id="auto_expand" checked />
+          生成前にAIが自動で英語プロンプトに変換する(推奨)
+        </label>
+      </div>
 
       <label>
         入れたくない要素 (ネガティブプロンプト・任意)

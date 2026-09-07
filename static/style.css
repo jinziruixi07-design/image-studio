@@ -162,6 +162,17 @@ button:not(:disabled):hover {
   background: #305a72;
 }
 
+.checkbox-label {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px !important;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: auto;
+  padding: 0;
+}
+
 #reference-uploads {
   display: flex;
   flex-direction: column;

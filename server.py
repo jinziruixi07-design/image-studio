@@ -35,6 +35,22 @@ app = Flask(__name__, static_folder="static", static_url_path="")
 JOBS = {}
 
 
+@app.errorhandler(Exception)
+def handle_any_error(exc):
+    """Always return JSON, even for errors this code didn't anticipate.
+
+    Without this, an unhandled exception (or a plain 404) renders Flask's
+    default HTML error page, and the frontend's `await res.json()` then
+    fails with a confusing "Unexpected token '<' ... not valid JSON" - the
+    browser is just reporting that the "JSON" it got was actually HTML.
+    """
+    from werkzeug.exceptions import HTTPException
+
+    if isinstance(exc, HTTPException):
+        return jsonify({"error": exc.description or str(exc)}), exc.code
+    return jsonify({"error": f"サーバー内部でエラーが発生しました: {exc}"}), 500
+
+
 def load_characters():
     if not CHARACTERS_INDEX.exists():
         return []
@@ -162,8 +178,8 @@ def api_generate():
                 comfy_name = comfy_client.upload_image(
                     COMFYUI_URL, f"character_{character_id}.png", portrait_path.read_bytes()
                 )
-            except requests.exceptions.ConnectionError:
-                return jsonify({"error": f"ComfyUIに接続できませんでした。ComfyUIが起動しているか確認してください ({COMFYUI_URL})。"}), 502
+            except requests.exceptions.RequestException as exc:
+                return jsonify({"error": f"ComfyUIとの通信に失敗しました。ComfyUIが起動しているか確認してください ({COMFYUI_URL})。詳細: {exc}"}), 502
             reference_image_names.append(comfy_name)
 
         i = 0
@@ -173,8 +189,8 @@ def api_generate():
                 break
             try:
                 comfy_name = comfy_client.upload_image(COMFYUI_URL, file.filename, file.read(), file.mimetype)
-            except requests.exceptions.ConnectionError:
-                return jsonify({"error": f"ComfyUIに接続できませんでした。ComfyUIが起動しているか確認してください ({COMFYUI_URL})。"}), 502
+            except requests.exceptions.RequestException as exc:
+                return jsonify({"error": f"ComfyUIとの通信に失敗しました。ComfyUIが起動しているか確認してください ({COMFYUI_URL})。詳細: {exc}"}), 502
             reference_image_names.append(comfy_name)
             i += 1
 
