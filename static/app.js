@@ -6,6 +6,8 @@ const characterPicker = document.getElementById("character-picker");
 const characterSelect = document.getElementById("character_select");
 const promptEl = document.getElementById("prompt");
 const expandBtn = document.getElementById("expand-btn");
+const negativeEl = document.getElementById("negative");
+const expandNegativeBtn = document.getElementById("expand-negative-btn");
 const autoExpandRow = document.getElementById("auto-expand-row");
 const autoExpandCheckbox = document.getElementById("auto_expand");
 const statusEl = document.getElementById("status");
@@ -108,6 +110,7 @@ async function loadFeatures() {
   const data = await safeJson(res);
   promptExpansionAvailable = !!data.prompt_expansion_available;
   expandBtn.hidden = !promptExpansionAvailable;
+  expandNegativeBtn.hidden = !promptExpansionAvailable;
   autoExpandRow.hidden = !promptExpansionAvailable;
 }
 
@@ -191,11 +194,11 @@ async function saveAsCharacter(promptId, index) {
   loadCharacters();
 }
 
-async function expandPromptText(text) {
+async function expandPromptText(text, kind = "positive") {
   const res = await fetch("/api/expand_prompt", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text }),
+    body: JSON.stringify({ text, kind }),
   });
   const data = await safeJson(res);
   if (!res.ok) throw new Error(data.error || "プロンプトの変換に失敗しました");
@@ -241,6 +244,26 @@ expandBtn.addEventListener("click", async () => {
   }
 });
 
+expandNegativeBtn.addEventListener("click", async () => {
+  const text = negativeEl.value.trim();
+  if (!text) {
+    setStatus("先に、入れたくない要素を書いてください。", true);
+    return;
+  }
+  expandNegativeBtn.disabled = true;
+  const originalLabel = expandNegativeBtn.textContent;
+  expandNegativeBtn.textContent = "変換中...";
+  try {
+    negativeEl.value = await expandPromptText(text, "negative");
+    setStatus("ネガティブプロンプトを変換しました。");
+  } catch (err) {
+    setStatus(err.message, true);
+  } finally {
+    expandNegativeBtn.disabled = false;
+    expandNegativeBtn.textContent = originalLabel;
+  }
+});
+
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
   const wf = currentWorkflow();
@@ -251,21 +274,34 @@ form.addEventListener("submit", async (e) => {
   setStatus("送信中...");
 
   let promptText = promptEl.value;
-  if (promptExpansionAvailable && autoExpandCheckbox.checked && promptText.trim()) {
-    try {
-      setStatus("AIでプロンプトを英語に変換しています...");
-      promptText = await expandPromptText(promptText);
-      promptEl.value = promptText; // show the user what was actually used
-    } catch (err) {
-      // Fall back to the original text rather than blocking generation.
-      setStatus(`プロンプト変換に失敗したため、入力をそのまま使います (${err.message})`, true);
+  let negativeText = negativeEl.value;
+
+  if (promptExpansionAvailable && autoExpandCheckbox.checked) {
+    if (promptText.trim()) {
+      try {
+        setStatus("AIでプロンプトを英語に変換しています...");
+        promptText = await expandPromptText(promptText);
+        promptEl.value = promptText; // show the user what was actually used
+      } catch (err) {
+        // Fall back to the original text rather than blocking generation.
+        setStatus(`プロンプト変換に失敗したため、入力をそのまま使います (${err.message})`, true);
+      }
+    }
+    if (negativeText.trim()) {
+      try {
+        setStatus("AIでネガティブプロンプトを英語に変換しています...");
+        negativeText = await expandPromptText(negativeText, "negative");
+        negativeEl.value = negativeText;
+      } catch (err) {
+        setStatus(`ネガティブプロンプト変換に失敗したため、入力をそのまま使います (${err.message})`, true);
+      }
     }
   }
 
   const formData = new FormData();
   formData.append("workflow_id", wf.id);
   formData.append("prompt", promptText);
-  formData.append("negative", document.getElementById("negative").value);
+  formData.append("negative", negativeText);
   const seedValue = document.getElementById("seed").value;
   if (seedValue !== "") formData.append("seed", seedValue);
 

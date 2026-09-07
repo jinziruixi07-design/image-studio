@@ -95,11 +95,12 @@ def api_expand_prompt():
 
     data = request.get_json(force=True)
     text = (data.get("text") or "").strip()
+    kind = data.get("kind") or "positive"
     if not text:
         return jsonify({"error": "変換したい文章を入力してください。"}), 400
 
     try:
-        expanded = prompt_expand.expand_prompt(text)
+        expanded = prompt_expand.expand_prompt(text, kind=kind)
     except Exception as exc:  # noqa: BLE001 - surface any API error to the UI
         return jsonify({"error": f"プロンプト変換に失敗しました: {exc}"}), 502
 

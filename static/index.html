@@ -47,8 +47,11 @@
       </div>
 
       <label>
-        入れたくない要素 (ネガティブプロンプト・任意)
-        <textarea id="negative" rows="2" placeholder="例: lowres, extra fingers, watermark"></textarea>
+        入れたくない要素 (ネガティブプロンプト・任意・日本語でOK)
+        <div class="prompt-row">
+          <textarea id="negative" rows="2" placeholder="例: 手の形が変、画質が粗い"></textarea>
+          <button type="button" id="expand-negative-btn" hidden>AIで英語に変換</button>
+        </div>
       </label>
 
       <label>
